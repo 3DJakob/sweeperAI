@@ -12,11 +12,12 @@ NUMBEROFMINES = 40
 
 class SweeperGame:
     def __init__(self):
-        self.screen = pygame.display.set_mode((GRIDX * TILESIZE, GRIDY * TILESIZE))
+        self.screen = pygame.display.set_mode((GRIDX * TILESIZE, (GRIDY + 1) * TILESIZE))
         self.map = self._generateMap()
         self.userMap = self._generateUserMap()
         self.clock = pygame.time.Clock()
         self.running = True
+        self.score = 0
 
     def run(self):
         while self.running:
@@ -40,13 +41,16 @@ class SweeperGame:
             for y in range(GRIDY):
                 self._drawTile(x, y, self.userMap[y][x])
 
-
+        # draw score
+        scoreElement = font.render('Score: ' + str(self.score), True, (255, 255, 255))
+        self.screen.blit(scoreElement, (0, GRIDY * TILESIZE))
         pygame.display.flip()
 
     def _showTiles(self, x, y):
       # check all tiles around x, y
       if self.map[x][y] == 0:
         self.userMap[y][x] = self.map[y][x]
+        self.score = self.score + 100
         for i in range(-1, 2):
             for j in range(-1, 2):
                 if x + i < 0 or x + i >= GRIDX or y + j < 0 or y + j >= GRIDY:
@@ -55,6 +59,7 @@ class SweeperGame:
                     self._showTiles(x + i, y + j)
       else:
         self.userMap[y][x] = self.map[y][x]
+        self.score = self.score + 100
 
 
 
@@ -67,9 +72,9 @@ class SweeperGame:
         # if user clicks on a number, show it
         if self.map[y][x] != 0:
             self.userMap[y][x] = self.map[y][x]
+            self.score = self.score + 100
             return
 
-        # TODO if user clicks on a blank tile, show all tiles around it
         self._showTiles(x, y)
           
     def _drawTile(self, x, y, text=0):
@@ -117,7 +122,7 @@ class SweeperGame:
                     continue
                 map[y][x] = self._calculateTileNumber(x, y, map)
 
-        print(map)
+        # print(map)
         return map
     
     def _generateUserMap(self):
