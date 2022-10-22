@@ -43,6 +43,22 @@ class SweeperGame:
 
         pygame.display.flip()
 
+    def _showTiles(self, x, y):
+      # check all tiles around x, y
+      if self.map[x][y] == 0:
+        self.userMap[y][x] = self.map[y][x]
+        for i in range(-2, 2):
+            for j in range(-2, 2):
+                if x + i < 0 or x + i >= GRIDX or y + j < 0 or y + j >= GRIDY:
+                    continue
+                if self.map[y + j][x + i] == 0 and self.userMap[y + j][x + i] == 10:
+                    self.userMap[y + j][x + i] = self.map[y][x]
+                    self._showTiles(x + i, y + j)
+      else:
+        self.userMap[y][x] = self.map[y][x]
+
+
+
     def userMove(self, x, y):
         # if user clicks on a mine, game over
         if self.map[y][x] == 9:
@@ -55,8 +71,7 @@ class SweeperGame:
             return
 
         # TODO if user clicks on a blank tile, show all tiles around it
-        # self._showTiles(x, y)
-        self.userMap[y][x] = self.map[y][x]
+        self._showTiles(x, y)
           
     def _drawTile(self, x, y, text=0):
         # draw tile at x, y with size TILESIZE
