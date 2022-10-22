@@ -14,6 +14,7 @@ class SweeperGame:
     def __init__(self):
         self.screen = pygame.display.set_mode((GRIDX * TILESIZE, GRIDY * TILESIZE))
         self.map = self._generateMap()
+        self.userMap = self._generateUserMap()
         self.clock = pygame.time.Clock()
         self.running = True
 
@@ -79,6 +80,12 @@ class SweeperGame:
                 map[y][x] = self._calculateTileNumber(x, y, map)
 
         print(map)
+        return map
+    
+    def _generateUserMap(self):
+        # The user map is the map that the user/AI sees
+        # 10 = unexplored
+        map = [[10 for x in range(GRIDX)] for y in range(GRIDY)]
         return map
 
 
