@@ -50,7 +50,6 @@ class SweeperGame:
       # check all tiles around x, y
       if self.map[x][y] == 0:
         self.userMap[y][x] = self.map[y][x]
-        self.score = self.score + 100
         for i in range(-1, 2):
             for j in range(-1, 2):
                 if x + i < 0 or x + i >= GRIDX or y + j < 0 or y + j >= GRIDY:
@@ -59,23 +58,28 @@ class SweeperGame:
                     self._showTiles(x + i, y + j)
       else:
         self.userMap[y][x] = self.map[y][x]
-        self.score = self.score + 100
 
+
+    def _calculateScore(self):
+        currentScore = 0
+        for x in range(GRIDX):
+            for y in range(GRIDY):
+                if self.userMap[y][x] != 10 and self.userMap[y][x] != 9:
+                    currentScore += 100
+        return currentScore
 
 
     def userMove(self, x, y):
         # if user clicks on a mine, game over
         if self.map[y][x] == 9:
-            self.running = False
-            return
-
-        # if user clicks on a number, show it
-        if self.map[y][x] != 0:
-            self.userMap[y][x] = self.map[y][x]
-            self.score = self.score + 100
-            return
+            # self.running = False
+            return -100
 
         self._showTiles(x, y)
+        reward = self.score - self._calculateScore()
+        self.score = self._calculateScore()
+        return reward
+          
           
     def _drawTile(self, x, y, text=0):
         # draw tile at x, y with size TILESIZE
