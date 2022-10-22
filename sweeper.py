@@ -38,18 +38,42 @@ class SweeperGame:
         # draw tiles from map
         for x in range(GRIDX):
             for y in range(GRIDY):
-                self._drawTile(x, y, self.map[y][x])
+                self._drawTile(x, y, self.userMap[y][x])
 
 
         pygame.display.flip()
+
+    def userMove(self, x, y):
+        # if user clicks on a mine, game over
+        if self.map[y][x] == 9:
+            self.running = False
+            return
+
+        # if user clicks on a number, show it
+        if self.map[y][x] != 0:
+            self.userMap[y][x] = self.map[y][x]
+            return
+
+        # TODO if user clicks on a blank tile, show all tiles around it
+        # self._showTiles(x, y)
+        self.userMap[y][x] = self.map[y][x]
           
     def _drawTile(self, x, y, text=0):
         # draw tile at x, y with size TILESIZE
         if text == 9:
             text = 'B'
+        if text == 10:
+            text = ''
 
         pygame.draw.rect(self.screen, (255, 255, 255), (x * TILESIZE, y * TILESIZE, TILESIZE, TILESIZE), 1)
         textElement = font.render(str(text), True, (255, 255, 255))
+
+        # on click call userMove
+        if pygame.mouse.get_pressed()[0]:
+            if pygame.mouse.get_pos()[0] >= x * TILESIZE and pygame.mouse.get_pos()[0] <= x * TILESIZE + TILESIZE:
+                if pygame.mouse.get_pos()[1] >= y * TILESIZE and pygame.mouse.get_pos()[1] <= y * TILESIZE + TILESIZE:
+                    self.userMove(x, y)
+
         self.screen.blit(textElement, (x * TILESIZE + TILESIZE / 2 - textElement.get_width() // 2, y * TILESIZE + TILESIZE / 2 - textElement.get_height() // 2))
 
     def _calculateTileNumber(self, x, y, map):
