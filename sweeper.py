@@ -47,12 +47,11 @@ class SweeperGame:
       # check all tiles around x, y
       if self.map[x][y] == 0:
         self.userMap[y][x] = self.map[y][x]
-        for i in range(-2, 2):
-            for j in range(-2, 2):
+        for i in range(-1, 2):
+            for j in range(-1, 2):
                 if x + i < 0 or x + i >= GRIDX or y + j < 0 or y + j >= GRIDY:
                     continue
                 if self.map[y + j][x + i] == 0 and self.userMap[y + j][x + i] == 10:
-                    self.userMap[y + j][x + i] = self.map[y][x]
                     self._showTiles(x + i, y + j)
       else:
         self.userMap[y][x] = self.map[y][x]
