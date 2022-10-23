@@ -9,7 +9,6 @@ from helper import plot
 MAX_MEMORY = 100_000
 BATCH_SIZE = 1000
 LR = 0.001
-BLOCK_SIZE = 20
 
 class Agent:
 
@@ -41,7 +40,7 @@ class Agent:
   def train_short_memory(self, state, action, reward, next_state, game_over):
     self.trainer.train_step(state, action, reward, next_state, game_over)
 
-  def get_action(self, state):
+  def get_action(self, state, game):
     # random moves: tradeoff exploration / exploitation
     self.epsilon = 80 - self.n_games
     final_move = [0] * GRIDX*GRIDY
@@ -51,8 +50,16 @@ class Agent:
     else:
       state0 = torch.tensor(state, dtype=torch.float)
       prediciton = self.model(state0)
-      move = torch.argmax(prediciton).item()
-      final_move[move] = 1
+      predictionArray = prediciton.detach().numpy()
+      moveIndex = np.argmax(predictionArray)
+      
+      # check if valid move
+      userMap = np.array(game.userMap).flatten()
+      while userMap[moveIndex] != 10:
+        # take next best move
+        predictionArray[moveIndex] = -100
+        moveIndex = np.argmax(predictionArray)
+      final_move[moveIndex] = 1
     return final_move
 
 def train():
@@ -68,7 +75,7 @@ def train():
     state_old = agent.get_state(game)
 
     # Get move
-    final_move = agent.get_action(state_old)
+    final_move = agent.get_action(state_old, game)
 
     # Perform move and get new state
     x = final_move.index(1) // GRIDX
@@ -95,11 +102,11 @@ def train():
       
       print('Game', agent.n_games, 'Score', score, 'Record:', record)
 
-      # plot_scores.append(score)
-      # total_score += score
-      # mean_score = total_score / agent.n_games
-      # plot_mean_scores.append(mean_score)
-      # plot(plot_scores, plot_mean_scores)
+      plot_scores.append(score)
+      total_score += score
+      mean_score = total_score / agent.n_games
+      plot_mean_scores.append(mean_score)
+      plot(plot_scores, plot_mean_scores)
 
 
       
