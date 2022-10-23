@@ -68,12 +68,11 @@ class SweeperGame:
                     currentScore += 100
         return currentScore
 
-
+    # returns reward, game over, score
     def userMove(self, x, y):
         # if user clicks on a mine, game over
         if self.map[y][x] == 9:
-            self.running = False
-            return -100
+            return -100, True, self.score
 
         self._showTiles(x, y)
         currentScore = self._calculateScore()
@@ -82,10 +81,9 @@ class SweeperGame:
 
         if self.score == GRIDX * GRIDY * 100 - NUMBEROFMINES * 100:
             # game won
-            self.running = False
-            return 1000
+            return 1000, False, self.score
 
-        return reward
+        return reward, False, self.score
           
           
     def _drawTile(self, x, y, text=0):
