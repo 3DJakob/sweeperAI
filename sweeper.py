@@ -63,7 +63,7 @@ class SweeperGame:
 
     def _showTiles(self, x, y):
       # check all tiles around x, y
-      if self.map[x][y] == 0:
+      if self.map[y][x] == 0:
         self.userMap[y][x] = self.map[y][x]
         for i in range(-1, 2):
             for j in range(-1, 2):
