@@ -21,12 +21,14 @@ class SweeperGame:
         self.clock = pygame.time.Clock()
         self.running = True
         self.score = 0
+        self.isClicking = 0
+        self.lastClickedXY = (0, 0)
 
     def run(self):
         while self.running:
             self.clock.tick(60)
             self.handle_events()
-            self.update()
+            self._getMouse()
             self.draw()
 
     def handle_events(self):
@@ -34,8 +36,18 @@ class SweeperGame:
             if event.type == pygame.QUIT:
                 self.running = False
 
-    def update(self):
-        pass
+    def _getMouse(self):
+        if pygame.mouse.get_pressed()[0]:
+          self.lastClickedXY = pygame.mouse.get_pos()
+        newClick = self.isClicking == True and pygame.mouse.get_pressed()[0] == False
+        self.isClicking = pygame.mouse.get_pressed()[0]
+        
+        x = self.lastClickedXY[0] // TILESIZE
+        y = self.lastClickedXY[1] // TILESIZE
+
+        # on click call userMove
+        if newClick:
+            self.userMove(x, y)
 
     def draw(self):
         self.screen.fill((0, 0, 0))
@@ -99,12 +111,6 @@ class SweeperGame:
 
         pygame.draw.rect(self.screen, (255, 255, 255), (x * TILESIZE, y * TILESIZE, TILESIZE, TILESIZE), 1)
         textElement = font.render(str(text), True, (255, 255, 255))
-
-        # on click call userMove
-        if pygame.mouse.get_pressed()[0]:
-            if pygame.mouse.get_pos()[0] >= x * TILESIZE and pygame.mouse.get_pos()[0] <= x * TILESIZE + TILESIZE:
-                if pygame.mouse.get_pos()[1] >= y * TILESIZE and pygame.mouse.get_pos()[1] <= y * TILESIZE + TILESIZE:
-                    self.userMove(x, y)
 
         self.screen.blit(textElement, (x * TILESIZE + TILESIZE / 2 - textElement.get_width() // 2, y * TILESIZE + TILESIZE / 2 - textElement.get_height() // 2))
 
