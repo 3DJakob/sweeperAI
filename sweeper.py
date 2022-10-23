@@ -84,6 +84,7 @@ class SweeperGame:
 
         if self.score == GRIDX * GRIDY * 100 - NUMBEROFMINES * 100:
             # game won
+            print('Game won')
             return 1000, False, self.score
 
         return reward, False, self.score
