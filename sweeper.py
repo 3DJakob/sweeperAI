@@ -13,6 +13,9 @@ NUMBEROFMINES = 40
 class SweeperGame:
     def __init__(self):
         self.screen = pygame.display.set_mode((GRIDX * TILESIZE, (GRIDY + 1) * TILESIZE))
+        self.reset()
+
+    def reset(self):
         self.map = self._generateMap()
         self.userMap = self._generateUserMap()
         self.clock = pygame.time.Clock()
