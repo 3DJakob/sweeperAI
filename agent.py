@@ -2,7 +2,7 @@ import torch
 import random
 import numpy as np
 from collections import deque
-from sweeper import SweeperGame
+from sweeper import SweeperGame, GRIDX, GRIDY
 from model import Linear_QNet, QTrainer
 from helper import plot
 
@@ -18,7 +18,7 @@ class Agent:
     self.epsilon = 0  # randomness
     self.gamma = 0.9  # discount rate
     self.memory = deque(maxlen=MAX_MEMORY)  # popleft()
-    self.model = Linear_QNet(15*15, 256, 15*15)
+    self.model = Linear_QNet(GRIDX*GRIDY, 256, GRIDX*GRIDY)
     self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
 
   def get_state(self, game):
@@ -44,10 +44,9 @@ class Agent:
   def get_action(self, state):
     # random moves: tradeoff exploration / exploitation
     self.epsilon = 80 - self.n_games
-    # create array of zeros 15*15
-    final_move = [0] * 15*15
+    final_move = [0] * GRIDX*GRIDY
     if random.randint(0, 200) < self.epsilon:
-      move = random.randint(0, 15*15-1)
+      move = random.randint(0, GRIDX*GRIDY-1)
       final_move[move] = 1
     else:
       state0 = torch.tensor(state, dtype=torch.float)
@@ -72,8 +71,8 @@ def train():
     final_move = agent.get_action(state_old)
 
     # Perform move and get new state
-    x = final_move.index(1) // 15
-    y = final_move.index(1) % 15
+    x = final_move.index(1) // GRIDX
+    y = final_move.index(1) % GRIDY
     reward, game_over, score = game.userMove(x, y)
     game.draw()
     state_new = agent.get_state(game)
