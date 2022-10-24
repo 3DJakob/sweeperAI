@@ -58,10 +58,13 @@ class Agent:
 def train():
   plot_scores = []
   plot_mean_scores = []
+  plot_already_clicked = []
   total_score = 0
   record = 0
   agent = Agent()
   game = SweeperGame()
+
+  currentAlreadyClicked = 0
   # game.run()
   while True:
     # Get old state
@@ -78,7 +81,7 @@ def train():
     # if trying to click already clicked give negative reward
     if game.userMap[y][x] != 10:
       reward = -100
-      print("trying to click already clicked")
+      currentAlreadyClicked += 1
 
     game.draw()
     state_new = agent.get_state(game)
@@ -105,7 +108,10 @@ def train():
       total_score += score
       mean_score = total_score / agent.n_games
       plot_mean_scores.append(mean_score)
-      plot(plot_scores, plot_mean_scores)
+      plot_already_clicked.append(currentAlreadyClicked * 100) # times 100 to make it more visible
+      plot(plot_scores, plot_mean_scores, plot_already_clicked)
+
+      currentAlreadyClicked = 0
 
 
       
