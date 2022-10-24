@@ -81,6 +81,7 @@ def train():
 
     # If clicked on an already clicked cell, give a negative reward
     if reward == 0:
+      currentAlreadyClicked += 1
       reward = -100
 
     game.draw()
