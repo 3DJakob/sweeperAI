@@ -77,13 +77,11 @@ def train():
     x = final_move.index(1) % GRIDX
     y = final_move.index(1) // GRIDY
 
-    reward = 0
-    # if trying to click already clicked give negative reward
-    if game.userMap[y][x] != 10:
-      reward = -100
-      currentAlreadyClicked += 1
-
     reward, game_over, score = game.userMove(x, y)
+
+    # If clicked on an already clicked cell, give a negative reward
+    if reward == 0:
+      reward = -100
 
     game.draw()
     state_new = agent.get_state(game)
