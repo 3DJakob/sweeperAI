@@ -17,12 +17,42 @@ class Agent:
     self.epsilon = 0  # randomness
     self.gamma = 0.9  # discount rate
     self.memory = deque(maxlen=MAX_MEMORY)  # popleft()
-    self.model = Linear_QNet(GRIDX*GRIDY, 256, GRIDX*GRIDY)
+    self.model = Linear_QNet(GRIDX*GRIDY*11, 256, GRIDX*GRIDY)
     self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
 
+  def userMapToState(self, game):
+    state2D = np.array(game.userMap)
+    state3D = np.zeros((GRIDX, GRIDY, 11))
+    for x in range(GRIDX):
+      for y in range(GRIDY):
+        if state2D[y][x] == 0:
+          state3D[y][x][0] = 1
+        elif state2D[y][x] == 1:
+          state3D[y][x][1] = 1
+        elif state2D[y][x] == 2:
+          state3D[y][x][2] = 1
+        elif state2D[y][x] == 3:
+          state3D[y][x][3] = 1
+        elif state2D[y][x] == 4:
+          state3D[y][x][4] = 1
+        elif state2D[y][x] == 5:
+          state3D[y][x][5] = 1
+        elif state2D[y][x] == 6:
+          state3D[y][x][6] = 1
+        elif state2D[y][x] == 7:
+          state3D[y][x][7] = 1
+        elif state2D[y][x] == 8:
+          state3D[y][x][8] = 1
+        elif state2D[y][x] == 9:
+          state3D[y][x][9] = 1
+        elif state2D[y][x] == 10:
+          state3D[y][x][10] = 1
+    return state3D.flatten().flatten()
+
   def get_state(self, game):
-    state = np.array(game.userMap).flatten()
-    return np.array(state, dtype=int)
+    # state = np.array(game.userMap).flatten()
+    # return np.array(state, dtype=int)
+    return self.userMapToState(game)
 
   def remember(self, state, action, reward, next_state, game_over):
     tupleData = (state, action, reward, next_state, game_over)
