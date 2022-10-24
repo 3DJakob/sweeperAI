@@ -87,7 +87,7 @@ class SweeperGame:
     def userMove(self, x, y):
         # if user clicks on a mine, game over
         if self.map[y][x] == 9:
-            print('Game lost')
+            # print('Game lost')
             return -100, True, self.score
 
         self._showTiles(x, y)
