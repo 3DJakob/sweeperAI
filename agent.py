@@ -78,8 +78,8 @@ def train():
     final_move = agent.get_action(state_old, game)
 
     # Perform move and get new state
-    x = final_move.index(1) // GRIDX
-    y = final_move.index(1) % GRIDY
+    x = final_move.index(1) % GRIDX
+    y = final_move.index(1) // GRIDY
     reward, game_over, score = game.userMove(x, y)
     game.draw()
     state_new = agent.get_state(game)
