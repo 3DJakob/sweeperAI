@@ -92,7 +92,7 @@ class SweeperGame:
 
         self._showTiles(x, y)
         currentScore = self._calculateScore()
-        reward = self.score - currentScore
+        reward = currentScore - self.score
         self.score = currentScore
 
         if self.score == GRIDX * GRIDY * 100 - NUMBEROFMINES * 100:
