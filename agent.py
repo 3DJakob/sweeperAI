@@ -52,13 +52,6 @@ class Agent:
       prediciton = self.model(state0)
       predictionArray = prediciton.detach().numpy()
       moveIndex = np.argmax(predictionArray)
-      
-      # check if valid move
-      userMap = np.array(game.userMap).flatten()
-      while userMap[moveIndex] != 10:
-        # take next best move
-        predictionArray[moveIndex] = -100
-        moveIndex = np.argmax(predictionArray)
       final_move[moveIndex] = 1
     return final_move
 
@@ -81,6 +74,12 @@ def train():
     x = final_move.index(1) % GRIDX
     y = final_move.index(1) // GRIDY
     reward, game_over, score = game.userMove(x, y)
+
+    # if trying to click already clicked give negative reward
+    if game.userMap[y][x] != 10:
+      reward = -100
+      print("trying to click already clicked")
+
     game.draw()
     state_new = agent.get_state(game)
 
@@ -100,7 +99,7 @@ def train():
         record = score
         agent.model.save()
       
-      print('Game', agent.n_games, 'Score', score, 'Record:', record)
+      # print('Game', agent.n_games, 'Score', score, 'Record:', record)
 
       plot_scores.append(score)
       total_score += score
