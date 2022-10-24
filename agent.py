@@ -76,12 +76,14 @@ def train():
     # Perform move and get new state
     x = final_move.index(1) % GRIDX
     y = final_move.index(1) // GRIDY
-    reward, game_over, score = game.userMove(x, y)
 
+    reward = 0
     # if trying to click already clicked give negative reward
     if game.userMap[y][x] != 10:
       reward = -100
       currentAlreadyClicked += 1
+
+    reward, game_over, score = game.userMove(x, y)
 
     game.draw()
     state_new = agent.get_state(game)
