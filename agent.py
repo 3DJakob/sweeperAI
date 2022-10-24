@@ -107,7 +107,7 @@ def train():
     x = final_move.index(1) % GRIDX
     y = final_move.index(1) // GRIDY
 
-    reward, game_over, score = game.userMove(x, y)
+    reward, game_over, game_won, score = game.userMove(x, y)
 
     # If clicked on an already clicked cell, give a negative reward
     if reward == 0:
@@ -123,7 +123,7 @@ def train():
     # Remember
     agent.remember(state_old, final_move, reward, state_new, game_over)
 
-    if game_over:
+    if game_over or game_won:
       # Train long memory, plot result
       game.reset()
       agent.n_games += 1
