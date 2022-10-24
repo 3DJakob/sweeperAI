@@ -17,14 +17,18 @@ class Agent:
     self.epsilon = 0  # randomness
     self.gamma = 0.9  # discount rate
     self.memory = deque(maxlen=MAX_MEMORY)  # popleft()
-    self.model = Linear_QNet(GRIDX*GRIDY*11, 256, GRIDX*GRIDY)
+    self.model = Linear_QNet(GRIDX*GRIDY*12, 256, GRIDX*GRIDY)
     self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
 
   def userMapToState(self, game):
     state2D = np.array(game.userMap)
-    state3D = np.zeros((GRIDX, GRIDY, 11))
+    state3D = np.zeros((GRIDX, GRIDY, 12))
     for x in range(GRIDX):
       for y in range(GRIDY):
+        # layer 12 is if explored
+        if (state2D[y][x] != 10):
+          state3D[x][y][11] = 1
+
         if state2D[y][x] == 0:
           state3D[y][x][0] = 1
         elif state2D[y][x] == 1:
