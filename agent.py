@@ -5,6 +5,8 @@ from collections import deque
 from sweeper import SweeperGame, GRIDX, GRIDY
 from model import Linear_QNet, QTrainer
 from helper import plot
+cuda = torch.device('cuda')     # Default CUDA device
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 MAX_MEMORY = 100_000
 BATCH_SIZE = 1000
@@ -82,10 +84,11 @@ class Agent:
       move = random.randint(0, GRIDX*GRIDY-1)
       final_move[move] = 1
     else:
-      state0 = torch.tensor(state, dtype=torch.float)
+      state0 = torch.tensor(state, dtype=torch.float, device=device)
       prediciton = self.model(state0)
-      predictionArray = prediciton.detach().numpy()
-      moveIndex = np.argmax(predictionArray)
+      #predictionArray = prediciton.detach().numpy()
+      #moveIndex = np.argmax(predictionArray)
+      moveIndex = torch.argmax(prediciton).item()
       final_move[moveIndex] = 1
     return final_move
 
