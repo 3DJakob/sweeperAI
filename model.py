@@ -3,15 +3,21 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 import os
+cuda = torch.device('cuda')     # Default CUDA device
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+print(torch.cuda.get_device_name(0))
+
+
 
 class Linear_QNet(nn.Module):
   def __init__(self, input_size, hidden_size, output_size):
     super().__init__()
-    self.linear1 = nn.Linear(input_size, hidden_size)
-    self.linear2 = nn.Linear(hidden_size, output_size)
+    self.linear1 = nn.Linear(input_size, hidden_size).to(torch.device(device))
+    self.linear2 = nn.Linear(hidden_size, output_size).to(torch.device(device))
 
   def forward(self, x):
-    # tensor x is a batch of inputs
+    # tensor x is a batch of in
     x = F.relu(self.linear1(x))
     x = self.linear2(x)
     return x
@@ -31,11 +37,11 @@ class QTrainer:
     self.optimizer = optim.Adam(model.parameters(), lr=self.lr)
     self.criterion = nn.MSELoss()
 
-  def train_step(self, state, action, reward, next_state, done):
-    state = torch.tensor(state, dtype=torch.float)
-    next_state = torch.tensor(next_state, dtype=torch.float)
-    action = torch.tensor(action, dtype=torch.long)
-    reward = torch.tensor(reward, dtype=torch.float)
+  def train_step(self, stateIn, action, reward, next_stateIn, done):
+    state = torch.tensor(stateIn, dtype=torch.float, device=device)
+    next_state = torch.tensor(next_stateIn, dtype=torch.float, device=device)
+    action = torch.tensor(action, dtype=torch.long, device=device)
+    reward = torch.tensor(reward, dtype=torch.float, device=device)
     # done = torch.tensor(done, dtype=torch.float)
 
     if len(state.shape) == 1:
@@ -45,8 +51,7 @@ class QTrainer:
       reward = torch.unsqueeze(reward, 0)
       action = torch.unsqueeze(action, 0)
       done = (done, )
-
-    # 1: get predicted Q values for current state
+    # 1: get predicted Q values for current state using cuda
     pred = self.model(state)
     target = pred.clone()
 
