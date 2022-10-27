@@ -13,9 +13,9 @@ NUMBEROFMINES = 40
 class SweeperGame:
     def __init__(self):
         self.screen = pygame.display.set_mode((GRIDX * TILESIZE, (GRIDY + 1) * TILESIZE))
-        self.reset()
+        self.reset(5)
 
-    def reset(self):
+    def reset(self, revealedTiles=0):
         self.map = self._generateMap()
         self.userMap = self._generateUserMap()
         self.clock = pygame.time.Clock()
@@ -23,6 +23,13 @@ class SweeperGame:
         self.score = 0
         self.isClicking = 0
         self.lastClickedXY = (0, 0)
+
+        while revealedTiles > 0:
+            x = random.randint(0, GRIDX - 1)
+            y = random.randint(0, GRIDY - 1)
+            if self.map[y][x] == 0:
+                self._showTiles(x, y)
+                revealedTiles -= 1
 
     def run(self):
         while self.running:
@@ -142,7 +149,6 @@ class SweeperGame:
                     continue
                 map[y][x] = self._calculateTileNumber(x, y, map)
 
-        # print(map)
         return map
     
     def _generateUserMap(self):
