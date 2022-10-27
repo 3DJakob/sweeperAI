@@ -3,10 +3,8 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 import os
-cuda = torch.device('cuda')     # Default CUDA device
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-print(torch.cuda.get_device_name(0))
 
 
 
