@@ -28,7 +28,7 @@ class SweeperGame:
             x = random.randint(0, GRIDX - 1)
             y = random.randint(0, GRIDY - 1)
             if self.map[y][x] == 0:
-                self._showTiles(x, y)
+                self.userMove(x, y)
                 revealedTiles -= 1
 
     def run(self):
