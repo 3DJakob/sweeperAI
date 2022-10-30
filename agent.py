@@ -111,7 +111,6 @@ class Agent:
 def train():
   plot_scores = []
   plot_mean_scores = []
-  plot_already_clicked = []
   total_score = 0
   record = 0
   agent = Agent()
@@ -153,11 +152,6 @@ def train():
 
     reward, game_over, game_won, score = game.userMove(x, y)
 
-    # If clicked on an already clicked cell, give a negative reward
-    if reward == 0:
-      currentAlreadyClicked += 1
-      reward = -100
-
     game.draw()
     state_new = False
     if USING5X5MODEL:
@@ -183,10 +177,7 @@ def train():
       total_score += score
       mean_score = total_score / agent.n_games
       plot_mean_scores.append(mean_score)
-      plot_already_clicked.append(currentAlreadyClicked * 100) # times 100 to make it more visible
-      plot(plot_scores, plot_mean_scores, plot_already_clicked)
-
-      currentAlreadyClicked = 0
+      plot(plot_scores, plot_mean_scores)
 
 
       
