@@ -75,19 +75,6 @@ class Agent:
     # return np.array(state, dtype=int)
     return self.userMapToState(game)
 
-  def remember(self, state, action, reward, next_state, game_over):
-    tupleData = (state, action, reward, next_state, game_over)
-    self.memory.append(tupleData)
-
-  def train_long_memory(self):
-    if len(self.memory) > BATCH_SIZE:
-      mini_sample = random.sample(self.memory, BATCH_SIZE) # list of tuples
-    else:
-      mini_sample = self.memory
-    
-    states, actions, rewards, next_states, game_overs = zip(*mini_sample)
-    self.trainer.train_step(states, actions, rewards, next_states, game_overs)
-
   def train_short_memory(self, state, action, reward, next_state, game_over):
     self.trainer.train_step(state, action, reward, next_state, game_over)
 
@@ -181,14 +168,10 @@ def train():
     # Train short memory
     agent.train_short_memory(state_old, final_move, reward, state_new, game_over)
 
-    # Remember
-    agent.remember(state_old, final_move, reward, state_new, game_over)
-
     if game_over or game_won:
-      # Train long memory, plot result
-      game.reset()
+      # Reset, plot result
+      game.reset(5)
       agent.n_games += 1
-      agent.train_long_memory()
 
       if score > record:
         record = score
