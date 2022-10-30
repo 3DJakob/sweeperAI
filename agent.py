@@ -12,6 +12,8 @@ MAX_MEMORY = 100_000
 BATCH_SIZE = 1000
 LR = 0.001
 
+USING5X5MODEL = True
+
 class Agent:
 
   def __init__(self):
@@ -19,7 +21,7 @@ class Agent:
     self.epsilon = 0  # randomness
     self.gamma = 0.9  # discount rate
     self.memory = deque(maxlen=MAX_MEMORY)  # popleft()
-    self.model = Linear_QNet(GRIDX*GRIDY*12, 256, GRIDX*GRIDY)
+    self.model = Linear_QNet(5*5, 256, 1)
     self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
 
   def userMapToState(self, game):
@@ -55,7 +57,20 @@ class Agent:
           state3D[y][x][10] = 1
     return state3D.flatten().flatten()
 
-  def get_state(self, game):
+  def userMapTo5x5State(self, game, x, y):
+    state = np.zeros((5,5))
+    for i in range(5):
+      for j in range(5):
+        if (x-2+i < 0 or y-2+j < 0 or x-2+i >= GRIDX or y-2+j >= GRIDY):
+          state[i][j] = 10 # simple solution for out of bounds set unexplored
+        else:
+          state[i][j] = game.userMap[y-2+j][x-2+i]
+ 
+    return state.flatten()
+
+
+
+  def get_state(self, game, x, y):
     # state = np.array(game.userMap).flatten()
     # return np.array(state, dtype=int)
     return self.userMapToState(game)
@@ -75,6 +90,20 @@ class Agent:
 
   def train_short_memory(self, state, action, reward, next_state, game_over):
     self.trainer.train_step(state, action, reward, next_state, game_over)
+
+  # returns how much it wants to click the tile
+  def get_action5x5(self, game, x, y):
+    # random moves: tradeoff exploration / exploitation
+    self.epsilon = 80 - self.n_games
+    final_move = 0
+    if random.randint(0, 200) < self.epsilon:
+      move = random.randint(0, GRIDX*GRIDY-1)
+      return move
+    else:
+      state = self.userMapTo5x5State(game, x, y)
+      state0 = torch.tensor(state, dtype=torch.float, device=device)
+      final_move = self.model(state0).item()
+    return final_move
 
   def get_action(self, state, game):
     # random moves: tradeoff exploration / exploitation
@@ -105,10 +134,31 @@ def train():
   # game.run()
   while True:
     # Get old state
-    state_old = agent.get_state(game)
+    state_old = False
 
     # Get move
-    final_move = agent.get_action(state_old, game)
+    final_move = [0] * GRIDX*GRIDY
+    coordinates = (0,0)
+    if USING5X5MODEL:
+      theMaxValue = -1000
+
+      # Find the best move
+      for x in range(GRIDX):
+        for y in range(GRIDY):
+          if (game.userMap[y][x] != 10):
+            continue
+          # Get old state
+          # get the state for the 5x5
+          moveWeight = agent.get_action5x5(game, x, y)
+          if moveWeight > theMaxValue:
+            theMaxValue = moveWeight
+            coordinates = (x,y)
+      
+      final_move[coordinates[0] + coordinates[1] * GRIDX] = 1
+      state_old = agent.userMapTo5x5State(game, coordinates[0], coordinates[1])
+    else:
+      state_old = agent.get_state(game)
+      final_move = agent.get_action(state_old, game)
 
     # Perform move and get new state
     x = final_move.index(1) % GRIDX
@@ -122,7 +172,11 @@ def train():
       reward = -100
 
     game.draw()
-    state_new = agent.get_state(game)
+    state_new = False
+    if USING5X5MODEL:
+      state_new = agent.userMapTo5x5State(game, coordinates[0], coordinates[1])
+    else:
+      state_new = agent.get_state(game)
 
     # Train short memory
     agent.train_short_memory(state_old, final_move, reward, state_new, game_over)
