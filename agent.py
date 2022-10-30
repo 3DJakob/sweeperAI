@@ -21,7 +21,7 @@ class Agent:
     self.epsilon = 0  # randomness
     self.gamma = 0.9  # discount rate
     self.memory = deque(maxlen=MAX_MEMORY)  # popleft()
-    self.model = Linear_QNet(5*5, 256, 1)
+    self.model = Linear_QNet(5*5*10, 256 * 5, 1)
     self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
 
   def userMapToState(self, game):
@@ -65,8 +65,37 @@ class Agent:
           state[i][j] = 10 # simple solution for out of bounds set unexplored
         else:
           state[i][j] = game.userMap[y-2+j][x-2+i]
+    
+    state3D = np.zeros((5, 5, 10))
+    for i in range(5):
+      for j in range(5):
+        # layer 12 is if explored
+        # if (state[i][j] != 10):
+        #   state3D[i][j][11] = 1
+
+        if state[i][j] == 0:
+          state3D[i][j][0] = 1
+        elif state[i][j] == 1:
+          state3D[i][j][1] = 1
+        elif state[i][j] == 2:
+          state3D[i][j][2] = 1
+        elif state[i][j] == 3:
+          state3D[i][j][3] = 1
+        elif state[i][j] == 4:
+          state3D[i][j][4] = 1
+        elif state[i][j] == 5:
+          state3D[i][j][5] = 1
+        elif state[i][j] == 6:
+          state3D[i][j][6] = 1
+        elif state[i][j] == 7:
+          state3D[i][j][7] = 1
+        elif state[i][j] == 8:
+          state3D[i][j][8] = 1
+
+        elif state[i][j] == 9:
+          state3D[i][j][10] = 1
  
-    return state.flatten()
+    return state3D.flatten().flatten()
 
 
 
@@ -116,7 +145,6 @@ def train():
   agent = Agent()
   game = SweeperGame()
 
-  currentAlreadyClicked = 0
   # game.run()
   while True:
     # Get old state
