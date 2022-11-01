@@ -1,5 +1,6 @@
 import pygame
 import random
+import numpy as np
 
 pygame.init()
 font = pygame.font.Font('font.otf', 25)
@@ -56,12 +57,12 @@ class SweeperGame:
         if newClick:
             self.userMove(x, y)
 
-    def draw(self):
+    def draw(self, heatmap = np.zeros((GRIDX, GRIDY))):
         self.screen.fill((0, 0, 0))
         # draw tiles from map
         for x in range(GRIDX):
             for y in range(GRIDY):
-                self._drawTile(x, y, self.userMap[y][x])
+                self._drawTile(x, y, self.userMap[y][x], heatmap[y][x])
 
         # draw score
         scoreElement = font.render('Score: ' + str(self.score), True, (255, 255, 255))
@@ -99,7 +100,8 @@ class SweeperGame:
 
         self._showTiles(x, y)
         currentScore = self._calculateScore()
-        reward = currentScore - self.score
+        # reward = currentScore - self.score
+        reward = 100
         self.score = currentScore
 
         if self.score == GRIDX * GRIDY * 100 - NUMBEROFMINES * 100:
@@ -110,7 +112,7 @@ class SweeperGame:
         return reward, False, False, self.score
           
           
-    def _drawTile(self, x, y, text=0):
+    def _drawTile(self, x, y, text=0, heat=0):
         # draw tile at x, y with size TILESIZE
         if text == 9:
             text = 'B'
@@ -118,6 +120,9 @@ class SweeperGame:
             text = ''
 
         pygame.draw.rect(self.screen, (255, 255, 255), (x * TILESIZE, y * TILESIZE, TILESIZE, TILESIZE), 1)
+        # draw heatmap color
+        color = (255 * heat, 0, 0)
+        pygame.draw.rect(self.screen, color, (x * TILESIZE + 2, y * TILESIZE + 2, TILESIZE - 4, TILESIZE - 4))
         textElement = font.render(str(text), True, (255, 255, 255))
 
         self.screen.blit(textElement, (x * TILESIZE + TILESIZE / 2 - textElement.get_width() // 2, y * TILESIZE + TILESIZE / 2 - textElement.get_height() // 2))
