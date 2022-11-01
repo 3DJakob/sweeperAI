@@ -12,6 +12,8 @@ MAX_MEMORY = 100_000
 BATCH_SIZE = 1000
 LR = 0.001
 
+USING5X5MODEL = True
+
 class Agent:
 
   def __init__(self):
@@ -19,7 +21,7 @@ class Agent:
     self.epsilon = 0  # randomness
     self.gamma = 0.9  # discount rate
     self.memory = deque(maxlen=MAX_MEMORY)  # popleft()
-    self.model = Linear_QNet(GRIDX*GRIDY*12, 256, GRIDX*GRIDY)
+    self.model = Linear_QNet(5*5*10, 256 * 5, 1)
     self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
 
   def userMapToState(self, game):
@@ -55,26 +57,69 @@ class Agent:
           state3D[y][x][10] = 1
     return state3D.flatten().flatten()
 
-  def get_state(self, game):
+  def userMapTo5x5State(self, game, x, y):
+    state = np.zeros((5,5))
+    for i in range(5):
+      for j in range(5):
+        if (x-2+i < 0 or y-2+j < 0 or x-2+i >= GRIDX or y-2+j >= GRIDY):
+          state[i][j] = 10 # simple solution for out of bounds set unexplored
+        else:
+          state[i][j] = game.userMap[y-2+j][x-2+i]
+    
+    state3D = np.zeros((5, 5, 10))
+    for i in range(5):
+      for j in range(5):
+        # layer 12 is if explored
+        # if (state[i][j] != 10):
+        #   state3D[i][j][11] = 1
+
+        if state[i][j] == 0:
+          state3D[i][j][0] = 1
+        elif state[i][j] == 1:
+          state3D[i][j][1] = 1
+        elif state[i][j] == 2:
+          state3D[i][j][2] = 1
+        elif state[i][j] == 3:
+          state3D[i][j][3] = 1
+        elif state[i][j] == 4:
+          state3D[i][j][4] = 1
+        elif state[i][j] == 5:
+          state3D[i][j][5] = 1
+        elif state[i][j] == 6:
+          state3D[i][j][6] = 1
+        elif state[i][j] == 7:
+          state3D[i][j][7] = 1
+        elif state[i][j] == 8:
+          state3D[i][j][8] = 1
+
+        elif state[i][j] == 9:
+          state3D[i][j][10] = 1
+ 
+    return state3D.flatten().flatten()
+
+
+
+  def get_state(self, game, x, y):
     # state = np.array(game.userMap).flatten()
     # return np.array(state, dtype=int)
     return self.userMapToState(game)
 
-  def remember(self, state, action, reward, next_state, game_over):
-    tupleData = (state, action, reward, next_state, game_over)
-    self.memory.append(tupleData)
-
-  def train_long_memory(self):
-    if len(self.memory) > BATCH_SIZE:
-      mini_sample = random.sample(self.memory, BATCH_SIZE) # list of tuples
-    else:
-      mini_sample = self.memory
-    
-    states, actions, rewards, next_states, game_overs = zip(*mini_sample)
-    self.trainer.train_step(states, actions, rewards, next_states, game_overs)
-
   def train_short_memory(self, state, action, reward, next_state, game_over):
     self.trainer.train_step(state, action, reward, next_state, game_over)
+
+  # returns how much it wants to click the tile
+  def get_action5x5(self, game, x, y):
+    # random moves: tradeoff exploration / exploitation
+    self.epsilon = 80 - self.n_games
+    final_move = 0
+    if random.randint(0, 200) < self.epsilon:
+      move = random.randint(0, GRIDX*GRIDY-1)
+      return move
+    else:
+      state = self.userMapTo5x5State(game, x, y)
+      state0 = torch.tensor(state, dtype=torch.float, device=device)
+      final_move = self.model(state0).item()
+    return final_move
 
   def get_action(self, state, game):
     # random moves: tradeoff exploration / exploitation
@@ -95,20 +140,44 @@ class Agent:
 def train():
   plot_scores = []
   plot_mean_scores = []
-  plot_already_clicked = []
   total_score = 0
   record = 0
   agent = Agent()
   game = SweeperGame()
 
-  currentAlreadyClicked = 0
   # game.run()
   while True:
     # Get old state
-    state_old = agent.get_state(game)
+    state_old = False
 
     # Get move
-    final_move = agent.get_action(state_old, game)
+    final_move = [0] * GRIDX*GRIDY
+    coordinates = (0,0)
+
+    # heatmap 0-1 scale from final_move
+    heatmap = np.zeros((GRIDX, GRIDY))
+
+    if USING5X5MODEL:
+      theMaxValue = -1000
+
+      # Find the best move
+      for x in range(GRIDX):
+        for y in range(GRIDY):
+          if (game.userMap[y][x] != 10):
+            continue
+          # Get old state
+          # get the state for the 5x5
+          moveWeight = agent.get_action5x5(game, x, y)
+          heatmap[y][x] = moveWeight
+          if moveWeight > theMaxValue:
+            theMaxValue = moveWeight
+            coordinates = (x,y)
+      
+      final_move[coordinates[0] + coordinates[1] * GRIDX] = 1
+      state_old = agent.userMapTo5x5State(game, coordinates[0], coordinates[1])
+    else:
+      state_old = agent.get_state(game)
+      final_move = agent.get_action(state_old, game)
 
     # Perform move and get new state
     x = final_move.index(1) % GRIDX
@@ -116,25 +185,30 @@ def train():
 
     reward, game_over, game_won, score = game.userMove(x, y)
 
-    # If clicked on an already clicked cell, give a negative reward
-    if reward == 0:
-      currentAlreadyClicked += 1
-      reward = -100
+    
+    # add min number
+    min = np.min(heatmap)
+    if min < 0:
+      heatmap = heatmap + abs(min)
+    else:
+      heatmap = heatmap - abs(min)
+    # scale to 0-1
+    heatmap = heatmap / np.max(heatmap)
 
-    game.draw()
-    state_new = agent.get_state(game)
+    game.draw(heatmap)
+    state_new = False
+    if USING5X5MODEL:
+      state_new = agent.userMapTo5x5State(game, coordinates[0], coordinates[1])
+    else:
+      state_new = agent.get_state(game)
 
     # Train short memory
     agent.train_short_memory(state_old, final_move, reward, state_new, game_over)
 
-    # Remember
-    agent.remember(state_old, final_move, reward, state_new, game_over)
-
     if game_over or game_won:
-      # Train long memory, plot result
-      game.reset()
+      # Reset, plot result
+      game.reset(5)
       agent.n_games += 1
-      agent.train_long_memory()
 
       if score > record:
         record = score
@@ -146,10 +220,7 @@ def train():
       total_score += score
       mean_score = total_score / agent.n_games
       plot_mean_scores.append(mean_score)
-      plot_already_clicked.append(currentAlreadyClicked * 100) # times 100 to make it more visible
-      plot(plot_scores, plot_mean_scores, plot_already_clicked)
-
-      currentAlreadyClicked = 0
+      plot(plot_scores, plot_mean_scores)
 
 
       
