@@ -17,6 +17,7 @@ class SweeperGame:
         pygame.display.set_caption('Sweeper AI')
         Icon = pygame.image.load('sweeperAI.png')
         pygame.display.set_icon(Icon)
+        self.numberOfGames = 0
         self.reset(5)
 
     def reset(self, revealedTiles=0):
@@ -27,6 +28,8 @@ class SweeperGame:
         self.score = 0
         self.isClicking = 0
         self.lastClickedXY = (0, 0)
+
+        self.numberOfGames += 1
 
         while revealedTiles > 0:
             x = random.randint(0, GRIDX - 1)
@@ -70,6 +73,11 @@ class SweeperGame:
         # draw score
         scoreElement = font.render('Score: ' + str(self.score), True, (255, 255, 255))
         self.screen.blit(scoreElement, (0, GRIDY * TILESIZE))
+        # draw number of games
+        numberOfGamesElement = font.render('Games: ' + str(self.numberOfGames), True, (255,255,255))
+        self.screen.blit(numberOfGamesElement, (200, GRIDY * TILESIZE))
+        
+
         pygame.display.flip()
 
     def _showTiles(self, x, y):
