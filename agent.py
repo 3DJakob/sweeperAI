@@ -153,6 +153,10 @@ def train():
     # Get move
     final_move = [0] * GRIDX*GRIDY
     coordinates = (0,0)
+
+    # heatmap 0-1 scale from final_move
+    heatmap = np.zeros((GRIDX, GRIDY))
+
     if USING5X5MODEL:
       theMaxValue = -1000
 
@@ -164,6 +168,7 @@ def train():
           # Get old state
           # get the state for the 5x5
           moveWeight = agent.get_action5x5(game, x, y)
+          heatmap[y][x] = moveWeight
           if moveWeight > theMaxValue:
             theMaxValue = moveWeight
             coordinates = (x,y)
@@ -180,7 +185,17 @@ def train():
 
     reward, game_over, game_won, score = game.userMove(x, y)
 
-    game.draw()
+    
+    # add min number
+    min = np.min(heatmap)
+    if min < 0:
+      heatmap = heatmap + abs(min)
+    else:
+      heatmap = heatmap - abs(min)
+    # scale to 0-1
+    heatmap = heatmap / np.max(heatmap)
+
+    game.draw(heatmap)
     state_new = False
     if USING5X5MODEL:
       state_new = agent.userMapTo5x5State(game, coordinates[0], coordinates[1])
