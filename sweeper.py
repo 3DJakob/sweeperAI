@@ -14,6 +14,9 @@ NUMBEROFMINES = 40
 class SweeperGame:
     def __init__(self):
         self.screen = pygame.display.set_mode((GRIDX * TILESIZE, (GRIDY + 1) * TILESIZE))
+        pygame.display.set_caption('Sweeper AI')
+        Icon = pygame.image.load('sweeperAI.png')
+        pygame.display.set_icon(Icon)
         self.reset(5)
 
     def reset(self, revealedTiles=0):
