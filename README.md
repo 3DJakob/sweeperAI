@@ -4,6 +4,8 @@
 
 The idea of this project was to teach a deep linear Q-net to play the classic game minesweeper. The game is created using pygame and the AI using pytorch.
 
+Read the full report [here](https://github.com/3DJakob/sweeperAI/blob/main/Minesweeper_AI_report.pdf).
+
 ## Setup
 
 ```
